@@ -97,3 +97,41 @@ export async function loginUser(input: LoginUserInput): Promise<LoginUserResult>
   };
 }
 
+export interface CurrentUserResponse {
+  id: number;
+  name: string;
+  email: string;
+  created_at: Date | string;
+}
+
+export type GetCurrentUserResult =
+  | { success: true; data: CurrentUserResponse }
+  | { success: false; error: string };
+
+export async function getCurrentUser(token: string): Promise<GetCurrentUserResult> {
+  const [result] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      created_at: users.createdAt,
+    })
+    .from(sessions)
+    .innerJoin(users, eq(sessions.userId, users.id))
+    .where(eq(sessions.token, token))
+    .limit(1);
+
+  if (!result) {
+    return {
+      success: false,
+      error: "Unauthorized",
+    };
+  }
+
+  return {
+    success: true,
+    data: result,
+  };
+}
+
+
