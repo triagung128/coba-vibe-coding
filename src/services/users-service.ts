@@ -139,20 +139,15 @@ export type LogoutUserResult =
   | { success: false; error: string };
 
 export async function logoutUser(token: string): Promise<LogoutUserResult> {
-  const [session] = await db
-    .select()
-    .from(sessions)
-    .where(eq(sessions.token, token))
-    .limit(1);
+  const [result] = await db.delete(sessions).where(eq(sessions.token, token));
 
-  if (!session) {
+  // Jika tidak ada baris yang dihapus, berarti token tidak valid/tidak ditemukan
+  if (result.affectedRows === 0) {
     return {
       success: false,
       error: "Unauthorized",
     };
   }
-
-  await db.delete(sessions).where(eq(sessions.token, token));
 
   return {
     success: true,
