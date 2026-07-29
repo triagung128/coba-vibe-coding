@@ -134,4 +134,31 @@ export async function getCurrentUser(token: string): Promise<GetCurrentUserResul
   };
 }
 
+export type LogoutUserResult =
+  | { success: true; data: "OK" }
+  | { success: false; error: string };
+
+export async function logoutUser(token: string): Promise<LogoutUserResult> {
+  const [session] = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.token, token))
+    .limit(1);
+
+  if (!session) {
+    return {
+      success: false,
+      error: "Unauthorized",
+    };
+  }
+
+  await db.delete(sessions).where(eq(sessions.token, token));
+
+  return {
+    success: true,
+    data: "OK",
+  };
+}
+
+
 
