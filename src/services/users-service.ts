@@ -134,4 +134,26 @@ export async function getCurrentUser(token: string): Promise<GetCurrentUserResul
   };
 }
 
+export type LogoutUserResult =
+  | { success: true; data: "OK" }
+  | { success: false; error: string };
+
+export async function logoutUser(token: string): Promise<LogoutUserResult> {
+  const [result] = await db.delete(sessions).where(eq(sessions.token, token));
+
+  // Jika tidak ada baris yang dihapus, berarti token tidak valid/tidak ditemukan
+  if (result.affectedRows === 0) {
+    return {
+      success: false,
+      error: "Unauthorized",
+    };
+  }
+
+  return {
+    success: true,
+    data: "OK",
+  };
+}
+
+
 
